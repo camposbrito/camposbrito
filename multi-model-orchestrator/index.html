@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Model Engineering Orchestrator | Antigravity (AGY) Skill</title>
+  <meta name="description" content="Protocolo e arquitetura de orquestração multi-modelo em 4 pilares (Gemini 4 Argon, Gemini 3.8 Flash, Claude 5.5 Opus/Sonnet e GPT-OSS 120B) com Anti-Reward-Hacking e Test Harness Real." />
+  <style>
+    @layer reset, tokens, base, layout, components;
+
+    @layer reset {
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    }
+
+    @layer tokens {
+      :root {
+        --bg-primary: oklch(0.14 0.02 260);
+        --bg-surface: oklch(0.19 0.025 260);
+        --bg-elevated: oklch(0.24 0.03 260);
+        --text-primary: oklch(0.96 0.01 260);
+        --text-muted: oklch(0.74 0.02 260);
+        --accent-argon: oklch(0.72 0.16 250);
+        --accent-flash: oklch(0.78 0.17 85);
+        --accent-claude: oklch(0.72 0.18 25);
+        --accent-local: oklch(0.74 0.16 155);
+        --border-subtle: oklch(0.30 0.03 260);
+        --radius-md: 0.75rem;
+        --radius-lg: 1rem;
+        --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+    }
+
+    @layer base {
+      body {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: var(--font-sans);
+        line-height: 1.65;
+        padding-block: 2.5rem 4rem;
+        padding-inline: 1.25rem;
+      }
+      a { color: var(--accent-argon); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      code, pre { font-family: var(--font-mono); }
+    }
+
+    @layer layout {
+      .container {
+        max-inline-size: 72rem;
+        margin-inline: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+      }
+      .grid-pillars {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        gap: 1.25rem;
+      }
+    }
+
+    @layer components {
+      .hero {
+        background: linear-gradient(135deg, oklch(0.20 0.04 260), oklch(0.16 0.03 285));
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        padding: 2.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .badge {
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding-block: 0.25rem;
+        padding-inline: 0.75rem;
+        border-radius: 999px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-subtle);
+      }
+      .hero h1 {
+        font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+        line-height: 1.2;
+      }
+      .hero p {
+        color: var(--text-muted);
+        max-inline-size: 65ch;
+      }
+      .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-block-start: 0.5rem;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-block: 0.6rem;
+        padding-inline: 1.1rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: var(--bg-elevated);
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+        transition: transform 150ms ease, border-color 150ms ease;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        border-color: var(--accent-argon);
+        text-decoration: none;
+      }
+      .btn-primary {
+        background: var(--accent-argon);
+        color: oklch(0.12 0.02 260);
+        border-color: transparent;
+      }
+      .card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .card h2, .card h3 {
+        line-height: 1.3;
+      }
+      .pillar-argon { border-block-start: 4px solid var(--accent-argon); }
+      .pillar-flash { border-block-start: 4px solid var(--accent-flash); }
+      .pillar-claude { border-block-start: 4px solid var(--accent-claude); }
+      .pillar-local { border-block-start: 4px solid var(--accent-local); }
+      .model-tag {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+      pre {
+        background: oklch(0.11 0.015 260);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 1.1rem;
+        overflow-x: auto;
+        font-size: 0.85rem;
+        color: oklch(0.90 0.02 260);
+      }
+      ul {
+        padding-inline-start: 1.25rem;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      li strong { color: var(--text-primary); }
+      .diagram-box {
+        background: oklch(0.98 0.005 260);
+        color: #111;
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        overflow-x: auto;
+      }
+      footer {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        border-block-start: 1px solid var(--border-subtle);
+        padding-block-start: 1.5rem;
+      }
+    }
+  </style>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  </script>
+</head>
+<body>
+  <main class="container">
+    <header class="hero">
+      <div class="badge-row">
+        <span class="badge">🧠 Google Antigravity (AGY) Skill</span>
+        <span class="badge">🛡️ Anti-Reward-Hacking</span>
+        <span class="badge">⚡ 4-Pillar AI Architecture</span>
+        <span class="badge">Build v1.0.0</span>
+      </div>
+      <h1>Multi-Model Engineering Orchestrator</h1>
+      <p>
+        Doutrina de Engenharia Multi-Modelo para extrair o máximo de inteligência, velocidade e segurança combinando a especialização cognitiva de 4 modelos de IA — eliminando o desperdício de cota em tarefas braçais e bloqueando <strong>mocks teatrais (reward hacking)</strong> que mascaram bugs reais em produção.
+      </p>
+      <div class="btn-group">
+        <a class="btn btn-primary" href="https://github.com/camposbrito/camposbrito/tree/main/multi-model-orchestrator" target="_blank" rel="noopener">📦 Ver Repositório Público no GitHub</a>
+        <a class="btn" href="./SKILL.md" target="_blank">📄 Ler SKILL.md Bruto</a>
+        <a class="btn" href="./scripts/orchestrate.js" target="_blank">⚙️ orchestrate.js</a>
+        <a class="btn" href="./scripts/harness-builder.js" target="_blank">🏗️ harness-builder.js</a>
+        <a class="btn" href="./scripts/audit-runner.js" target="_blank">🕵️‍♂️ audit-runner.js</a>
+      </div>
+    </header>
+
+    <section>
+      <h2 style="margin-block-end: 1rem;">🏛️ Os 4 Pilares da Orquestração</h2>
+      <div class="grid-pillars">
+        <article class="card pillar-argon">
+          <span class="model-tag">FASE 2 • MAESTRO & ARQUITETO</span>
+          <h3>🏗️ Gemini 4 Argon</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem;">
+            Engenharia de longo horizonte (até 1M tokens). Mapeia acoplamentos ocultos em sistemas legados, desenha contratos Clean Architecture e cria o <strong>Test Harness Real</strong> antes da geração em lote.
+          </p>
+        </article>
+
+        <article class="card pillar-flash">
+          <span class="model-tag">FASE 1 • FORÇA BRUTA EM PARALELO</span>
+          <h3>🧱 Gemini 3.8 Flash</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem;">
+            Subagentes paralelos (<code>Model: "flash"</code>) para scaffolding, componentes HTML/Modern CSS, migrations, CRUDs e testes unitários baseados nos contratos da Fase 2 com altíssima velocidade.
+          </p>
+        </article>
+
+        <article class="card pillar-claude">
+          <span class="model-tag">FASE 3 • AUDITOR CLÍNICO ZERO-TRUST</span>
+          <h3>🕵️‍♂️ Claude Opus / Sonnet 5.5</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem;">
+            Core Reviewer implacável DevSecOps. Caça mocks falsos de banco, blocos <code>catch {}</code> silenciosos, <code>@ts-ignore</code>, SQL Injection, IDOR e <em>race conditions</em> no <code>git diff</code>.
+          </p>
+        </article>
+
+        <article class="card pillar-local">
+          <span class="model-tag">PILAR LOCAL • INFRA & PRIVACIDADE</span>
+          <h3>📦 GPT-OSS 120B / DeepSeek</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem;">
+            Execução local (Ollama/vLLM) ou via OpenCode para sanitização de logs sensíveis (Zero Cloud), geração de <code>Dockerfile</code> multi-stage, <code>docker-compose.yml</code> e pipelines CI/CD.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>🗺️ Fluxo de Arquitetura e Gate de Qualidade</h2>
+      <div class="diagram-box">
+        <pre class="mermaid" style="background: transparent; border: none; color: #111;">
+flowchart TD
+    User["👨‍💻 Engenheiro / Tech Lead"] --> Argon
+
+    subgraph Phase2["🏗️ FASE 2: Arquiteto & Maestro (Gemini 4 Argon)"]
+        Argon["Gemini 4 Argon (Long-Horizon Engineering)\n• Análise de até 1M tokens de contexto\n• Desacoplamento e Clean Architecture\n• Contratos, Interfaces e Harness de Testes Reais"]
+    end
+
+    subgraph Phase1["🧱 FASE 1: Força Bruta & Lote (Gemini 3.8 Flash)"]
+        Flash1["Subagente Flash #1\nUI / HTML / Modern CSS"]
+        Flash2["Subagente Flash #2\nMigrations / CRUD / Boilerplate"]
+        Flash3["Subagente Flash #3\nTestes Unitários Padrão"]
+    end
+
+    subgraph PhaseLocal["📦 FASE LOCAL: Infra & Privacidade (GPT-OSS 120B)"]
+        LocalOSS["GPT-OSS 120B (Ollama / vLLM)\n• Dockerfiles & docker-compose complexos\n• Pipelines CI/CD e Scripts Bash\n• Sanitização de dados sensíveis locais"]
+    end
+
+    subgraph Phase3["🕵️‍♂️ FASE 3: Auditor Clínico DevSecOps (Claude 5.5)"]
+        Claude["Claude Opus 5.5 / Sonnet 5.5\n• Caça a Mocks Falsos e Testes Viciados\n• Auditoria de SQL Injection & Race Conditions\n• Revisão Crítica Zero-Trust do git diff"]
+    end
+
+    Argon -->|Dispara em Paralelo\nModel: flash| Flash1 & Flash2 & Flash3
+    Argon <-->|Delega Infra Local| LocalOSS
+    Flash1 & Flash2 & Flash3 -->|Entrega Código Bruto| Argon
+    Argon -->|Submete Solução Integrada| Claude
+    Claude -->|Relatório de Falhas Críticas| Argon
+        </pre>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>🛡️ Por que o Anti-Reward-Hacking é Central?</h2>
+      <ul>
+        <li><strong>Bloqueio Ativo de Mocks de Banco (<code>real-harness.js</code>):</strong> Intercepta <code>jest.mock</code> / <code>vi.mock</code> e lança erro imediato caso um agente tente simular camadas críticas (<code>database</code>, <code>repository</code>, <code>prisma</code>, <code>knex</code>, <code>sequelize</code>).</li>
+        <li><strong>Servidor Efêmero Real:</strong> Sobe instâncias HTTP reais em <code>127.0.0.1:0</code> para testes de integração ponta a ponta contra bancos de teste reais.</li>
+        <li><strong>Scanner Estático +Cascata de 3 Níveis (<code>audit-runner.js</code>):</strong> Inspeciona automaticamente o <code>git diff</code> em busca de <code>EMPTY_CATCH</code>, <code>SKIPPED_TEST</code> (<code>.skip</code>), <code>RAW_SQL_INTERPOLATION</code> e aciona revisão clínica em cascata (1º AGY CLI Nativo &rarr; 2º OpenCode + OpenRouter &rarr; 3º OpenCode Free Fallback).</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>🚀 Como Executar a Orquestração Ponta a Ponta</h2>
+      <p style="color: var(--text-muted);">Com um único comando, o pipeline inicializa/verifica o Test Harness Real, executa a suíte de testes sem mocks viciados, roda o Auditor Clínico DevSecOps sobre o <code>git diff</code> e notifica o AGY Hub:</p>
+      <pre><code># 1. Inicializar o Test Harness Real Anti-Mock no projeto
+node scripts/harness-builder.js --init --path .
+
+# 2. Verificar integridade dos testes (Zero DB Mocks / Zero .skip)
+node scripts/harness-builder.js --verify --path .
+
+# 3. Rodar Auditoria Clínica DevSecOps (Fase 3 - Claude 5.5 / OpenCode)
+node scripts/audit-runner.js --path . --model claude-opus
+
+# 4. Pipeline Completo Unificado (Harness + Infra + Auditoria + Telemetria)
+node scripts/orchestrate.js --path . --init-harness</code></pre>
+    </section>
+
+    <footer>
+      Publicado por <strong>@camposbrito</strong> • Ecossistema B2Sync &amp; Google Antigravity (AGY) •
+      <a href="https://github.com/camposbrito/camposbrito/tree/main/multi-model-orchestrator">GitHub Repository</a>
+    </footer>
+  </main>
+</body>
+</html>
